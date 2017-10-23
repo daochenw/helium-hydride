@@ -50,10 +50,10 @@ def matrices():
         h_c[0, 1]*(elecop([1, 3])+elecop([2, 4])+elecop([3, 1])+elecop([4, 2])) + \
         h_c[1, 1]*(elecop([3, 3])+elecop([4, 4])) + \
         tt[0, 0, 0, 0]*elecop([1, 2, 2, 1]) + \
-        tt[0, 0, 0, 1]*(elecop([1, 2, 4, 1])+elecop([1, 4, 2, 1])) + \
-        tt[0, 1, 0, 1]*(elecop([1, 2, 4, 3])+elecop([3, 4, 2, 1])) + \
+        tt[0, 0, 0, 1]*(elecop([1, 2, 4, 1])+elecop([1, 4, 2, 1])+elecop([2, 1, 3, 2])+elecop([2, 3, 1, 2])) + \
+        tt[0, 1, 0, 1]*(elecop([1, 2, 4, 3])+elecop([3, 4, 2, 1])+elecop([1, 4, 2, 3])+elecop([3, 2, 4, 1])) + \
         tt[0, 0, 1, 1]*(elecop([2, 3, 3, 2])+elecop([1, 4, 4, 1])) + \
-        tt[0, 1, 1, 1]*(elecop([1, 4, 3, 3])+elecop([3, 4, 4, 1])) + \
+        tt[0, 1, 1, 1]*(elecop([4, 1, 3, 4])+elecop([4, 3, 1, 4])+elecop([3, 4, 2, 3])+elecop([3, 2, 4, 3])) + \
         tt[1, 1, 1, 1]*elecop([3, 4, 4, 3])
 
     mat_new = dict(h_c=h_c, tt=tt, h_tot=h_tot)
