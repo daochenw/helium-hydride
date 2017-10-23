@@ -1,6 +1,7 @@
 import numpy as np
 import post_scf
 import matplotlib.pyplot as plt
+import stabiliser
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import minimize
 
@@ -34,44 +35,44 @@ coef = [a1, a1, a2, a2,
         d1, d1, d2, d2,
         f1, f1, -f1, -f1]
 
-operations = [tsrp(operations_[i]) for i in np.arange(24)]
+operations = [tsrp(operations_[i]) for i in range(24)]
 
 
 def etsrp(t, s):
     return np.cos(t)*np.eye(16)+1j*np.sin(t)*tsrp(s)
 
+def prepare(t):
+    state = np.zeros(16, dtype=complex)
+    if t.size == 3:
+        # UCC evolution (T=T1+T2, one Trotter step, HF reference state - so ops annihilating HF are dropped,
+        # consider only z spin sz = 0 states as this is a property of the true G.S. - so ops involving e.g. a3†a2
+        # are dropped)
+
+        # exp(it(a3†a1 - h.c.))
+        u1 = etsrp(t[0], 'xzyi') @ etsrp(-t[0], 'yzxi')
+        # exp(it(a4†a2 - h.c.))
+        u2 = etsrp(t[1], 'ixzy') @ etsrp(-t[1], 'iyzx')
+        # exp(it(a4†a3†a2a1 - h.c.))
+        u3 = etsrp(t[2], 'xxxy') @ etsrp(-t[2], 'yyyx') @ \
+            etsrp(t[2], 'xxyx') @ etsrp(-t[2], 'yyxy') @ \
+            etsrp(t[2], 'xyyy') @ etsrp(-t[2], 'yxxx') @ \
+            etsrp(t[2], 'yxyy') @ etsrp(-t[2], 'xyxx')
+
+        # HF reference state
+        state[12] = 1
+        # UCC ansatz
+        state = u3 @ u2 @ u1 @ state
+
+    else:
+        assert t.size == 4
+        state[[3, 6, 9, 12]] = t
+        state = state / np.linalg.norm(state)
+
+    assert abs(np.linalg.norm(state) - 1) < 10e-8
+    return state
+
 
 def energy(t, mode=0):
-
-    def prepare(t_):
-        state_ = np.zeros(16, dtype=complex)
-        if t.size == 3:
-            # UCC evolution (T=T1+T2, one Trotter step, HF reference state - so ops annihilating HF are dropped,
-            # consider only z spin sz = 0 states as this is a property of the true G.S. - so ops involving e.g. a3†a2
-            # are dropped)
-
-            # exp(it(a3†a1 - h.c.))
-            u1 = etsrp(t_[0], 'xzyi') @ etsrp(-t_[0], 'yzxi')
-            # exp(it(a4†a2 - h.c.))
-            u2 = etsrp(t_[1], 'ixzy') @ etsrp(-t_[1], 'iyzx')
-            # exp(it(a4†a3†a2a1 - h.c.))
-            u3 = etsrp(t_[2], 'xxxy') @ etsrp(-t_[2], 'yyyx') @ \
-                etsrp(t_[2], 'xxyx') @ etsrp(-t_[2], 'yyxy') @ \
-                etsrp(t_[2], 'xyyy') @ etsrp(-t_[2], 'yxxx') @ \
-                etsrp(t_[2], 'yxyy') @ etsrp(-t_[2], 'xyxx')
-
-            # HF reference state
-            state_[12] = 1
-            # UCC ansatz
-            state_ = u3 @ u2 @ u1 @ state_
-
-        else:
-            assert t.size == 4
-            state_[[3, 6, 9, 12]] = t
-            state_ = state_ / np.linalg.norm(state_)
-
-        assert abs(np.linalg.norm(state_) - 1) < 10e-8
-        return state_
 
     state = prepare(t)
     true = np.dot(np.conj(state), np.matmul(h_tot, state))
@@ -111,7 +112,7 @@ def var_energy(state):
 
         return smpl_
 
-    for i in np.arange(24):
+    for i in range(24):
         smpl = var_op(state, operations[i], n)
         mle_op[i] = 2*smpl/n-1
 
@@ -135,14 +136,24 @@ def optimise():
 def plot_2d():
     x = np.arange(-10, 10, 0.01)
     z = np.zeros(x.size)
+    x_list = []
+    z_list = []
 
-    def energy_1(x_): return energy(np.array([x_, 0, 0]))
+    def energy_1(x_):
+        state = prepare(np.array([x_, 0, 0]))
+        e = energy(np.array([x_, 0, 0]))
+        _, _, d = stabiliser.min_energy(state)
 
-    for p in np.arange(x.size):
+        if min(d) < 0.1:
+            x_list.append(x_)
+            z_list.append(e)
+
+        return e
+
+    for p in range(x.size):
             z[p] = energy_1(x[p])
-
+    plt.scatter(x_list, z_list, c='r')
     plt.plot(x, z)
-
     plt.show()
 
 
@@ -150,17 +161,28 @@ def plot_3d():
     x = np.arange(-2, 2, 0.1)
     y = np.arange(-2, 2, 0.1)
     z = np.zeros([x.size, y.size])
+    x, y = np.meshgrid(x, y)
+    stab_list = []
 
-    def energy_2(x_, y_): return energy(np.array([x_, y_, 0]))
+    def energy_2(x_, y_):
+        state = prepare(np.array([x_, y_, 0]))
+        e = energy(np.array([x_, y_, 0]))
+        _, _, d = stabiliser.min_energy(state)
+
+        if min(d) < 0.1:
+            stab_list.append((x_, y_, e))
+
+        return e
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
 
-    for p in np.arange(x.size):
-        for q in np.arange(y.size):
+    for p in range(x.size):
+        for q in range(y.size):
             z[p, q] = energy_2(x[p], y[q])
 
-    x, y = np.meshgrid(x, y)
+    for s in stab_list:
+        ax.scatter(s[0], s[1], s[2], zdir='z', c='r')
 
     surf = ax.plot_surface(x, y, z,
                            linewidth=0, antialiased=False)
