@@ -41,12 +41,14 @@ operations = [tsrp(operations_[i]) for i in range(24)]
 def etsrp(t, s):
     return np.cos(t)*np.eye(16)+1j*np.sin(t)*tsrp(s)
 
+
 def prepare(t):
     state = np.zeros(16, dtype=complex)
     if t.size == 3:
         # UCC evolution (T=T1+T2, one Trotter step, HF reference state - so ops annihilating HF are dropped,
         # consider only z spin sz = 0 states as this is a property of the true G.S. - so ops involving e.g. a3†a2
         # are dropped)
+        print('t is', t)
 
         # exp(it(a3†a1 - h.c.))
         u1 = etsrp(t[0], 'xzyi') @ etsrp(-t[0], 'yzxi')
@@ -72,7 +74,7 @@ def prepare(t):
     return state
 
 
-def energy(t, mode=0):
+def energy(t, mode=1):
 
     state = prepare(t)
     true = np.dot(np.conj(state), np.matmul(h_tot, state))
@@ -161,7 +163,6 @@ def plot_3d():
     x = np.arange(-2, 2, 0.1)
     y = np.arange(-2, 2, 0.1)
     z = np.zeros([x.size, y.size])
-    x, y = np.meshgrid(x, y)
     stab_list = []
 
     def energy_2(x_, y_):
@@ -184,6 +185,7 @@ def plot_3d():
     for s in stab_list:
         ax.scatter(s[0], s[1], s[2], zdir='z', c='r')
 
+    x, y = np.meshgrid(x, y)
     surf = ax.plot_surface(x, y, z,
                            linewidth=0, antialiased=False)
 
