@@ -74,7 +74,7 @@ def prepare(t):
     return state
 
 
-def energy(t, mode=1):
+def energy(t, mode=0):
 
     state = prepare(t)
     true = np.dot(np.conj(state), np.matmul(h_tot, state))
