@@ -1,5 +1,7 @@
-import numpy as np
+# pre_scf calculates Hamiltonian and overlap matrix elements between the two (spatial) STO-3G spatial basis functions.
+
 from scipy.special import erf
+import numpy as np
 
 # STO-3G (approx. to STO - zeta = 1 - with 3 contracted Gaussian functions (CGF)); to be clear, the CGFs are introduced
 # for computational convenience when it comes to evaluating integrals  rather than any deeper purpose. The STO itself
@@ -7,7 +9,7 @@ from scipy.special import erf
 # scaling as r -> inf which agrees with experiment; STOs are parametrised by the 'k' and the centre from which r is
 # taken. Further details are provided in Chapter 3.5 of Szabo & Ostlund (S.O. in below).
 
-# defining a k =1 STO in terms of CGFs (others can be reached by appropriate scaling via its decay rate k),
+# defining a k = 1 STO in terms of CGFs (others can be reached by appropriate scaling via its decay rate k),
 # see S.O. p157.
 coef = np.array([0.444635, 0.535328, 0.154329])
 expon = np.array([0.109818, 0.405771, 2.22766])

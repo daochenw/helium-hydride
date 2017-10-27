@@ -1,10 +1,14 @@
+# ve implements the variational eigen-solver method by preparing UCC ansatz states and evaluating its energy through
+# simulated measurements (which introduces noise).
+
+from scipy.optimize import minimize
+from mpl_toolkits.mplot3d import Axes3D
+import importlib
 import numpy as np
 import post_scf
 import matplotlib.pyplot as plt
-import stabiliser
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.optimize import minimize
-
+import classical
+importlib.reload(classical)
 
 pauli = post_scf.pauli
 mat_new = post_scf.matrices()
@@ -136,20 +140,23 @@ def optimise():
 
 
 def plot_2d():
-    x = np.arange(-10, 10, 0.01)
+    cls = classical.mps()
+    m = cls.shape[0]
+    print('Im here')
+    x = np.arange(-2, 2, 0.05)
     z = np.zeros(x.size)
     x_list = []
     z_list = []
 
     def energy_1(x_):
-        state = prepare(np.array([x_, 0, 0]))
+        state = np.array([prepare(np.array([x_, 0, 0]))])
+        state_rep = np.repeat(state, m, axis=0)
         e = energy(np.array([x_, 0, 0]))
-        _, _, d = stabiliser.min_energy(state)
-
+        # _, _, d = stabiliser.min_energy(state)
+        d = np.linalg.norm(cls[:, :, 0] - state_rep, axis=1)
         if min(d) < 0.1:
             x_list.append(x_)
             z_list.append(e)
-
         return e
 
     for p in range(x.size):
@@ -160,19 +167,22 @@ def plot_2d():
 
 
 def plot_3d():
+    cls = classical.mps()
+    m = cls.shape[0]
+    print('Im here')
     x = np.arange(-2, 2, 0.1)
     y = np.arange(-2, 2, 0.1)
     z = np.zeros([x.size, y.size])
-    stab_list = []
+    cls_list = []
 
     def energy_2(x_, y_):
-        state = prepare(np.array([x_, y_, 0]))
+        state = np.array([prepare(np.array([x_, y_, 0]))])
+        state_rep = np.repeat(state, m, axis=0)
         e = energy(np.array([x_, y_, 0]))
-        _, _, d = stabiliser.min_energy(state)
-
+        # _, _, d = stabiliser.min_energy(state)
+        d = np.linalg.norm(cls[:, :, 0] - state_rep, axis=1)
         if min(d) < 0.1:
-            stab_list.append((x_, y_, e))
-
+            cls_list.append((x_, y_, e))
         return e
 
     fig = plt.figure()
@@ -182,7 +192,7 @@ def plot_3d():
         for q in range(y.size):
             z[p, q] = energy_2(x[p], y[q])
 
-    for s in stab_list:
+    for s in cls_list:
         ax.scatter(s[0], s[1], s[2], zdir='z', c='r')
 
     x, y = np.meshgrid(x, y)

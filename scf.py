@@ -1,3 +1,5 @@
+# scf calculates solutions to the (spatial) Fock eigen-equation.
+
 import numpy as np
 import pre_scf
 

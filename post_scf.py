@@ -1,3 +1,6 @@
+# post_scf calculates Hamiltonian matrix elements between the two (spatial) solutions to the Fock eigen-equation as
+# found in the scf procedure (scf.py).
+
 import numpy as np
 import scf
 
