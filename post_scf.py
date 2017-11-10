@@ -1,8 +1,10 @@
 # post_scf calculates Hamiltonian matrix elements between the two (spatial) solutions to the Fock eigen-equation as
 # found in the scf procedure (scf.py).
 
+import importlib
 import numpy as np
 import scf
+importlib.reload(scf)
 
 pauli = dict(i=np.eye(2),
              x=np.array([[0, 1], [1, 0]]),
@@ -29,8 +31,8 @@ def elecop(s):
     return out
 
 
-def matrices():
-    c, en, mat = scf.scf()
+def matrices(r):
+    c, en, mat = scf.scf(r)
 
     h_c = np.zeros([2, 2])
 

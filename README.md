@@ -8,4 +8,4 @@ In post_scf.py, I recalculate the (electronic) Hamiltonian matrix elements betwe
 
 In ve.py, I implement the unitary coupled cluster trial state exp(T-T†)|HF> where T = T1 + T2 in the 2 electron case and T1 = sum(t_ij.ai†aj†), T2 = sum(t_ijkl.ai†aj†akal), the sum in each case is finite because of the introduction of a finite # of basis functions). The energy associated with this trial state can be computed in two ways by ve.energy depending on the mode. In mode = 0, the energy is calculated directly via matrix multiplication. In mode = 1, it samples from the output distribution of quantum circuits whose output expectation is a summand of this energy, the number of samples taken can be varied which affects the noisiness of this summand. The overall energy is then calculated classically by adding up the summands. With the energy function defined, ve.py finally uses the Nelder-Mead method to minimise this energy with respect to trial state parameters t.
 
-For example outputs, try running ve.optimise(), ve.plot_2d() or ve.plot_3d().
+For example outputs, try running ve.optimise(), ve.plot_2d(), ve.plot_3d() or ve.plot_disa().

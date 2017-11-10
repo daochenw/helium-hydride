@@ -4,7 +4,7 @@
 import numpy as np
 import post_scf
 
-mat_new = post_scf.matrices()
+mat_new = post_scf.matrices(r=1.4632)
 h_tot = mat_new['h_tot']
 
 st_12, st_14, st_23, st_34 = np.zeros(16),  np.zeros(16),  np.zeros(16),  np.zeros(16)
@@ -34,7 +34,7 @@ def stabiliser():
 
 def mps():
     # mps = matrix product states
-    k1, l1, k2, l2 = 50, 50, 50, 50
+    k1, l1, k2, l2 = 25, 25, 25, 25
     store = np.zeros([k1*l1*k2*l2, 16, 2], dtype=complex)
     counter = 0
     if True:

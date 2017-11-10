@@ -5,15 +5,16 @@ from scipy.optimize import minimize
 from mpl_toolkits.mplot3d import Axes3D
 import importlib
 import numpy as np
-import post_scf
 import matplotlib.pyplot as plt
+import post_scf
 import classical
 importlib.reload(classical)
+importlib.reload(post_scf)
 
 pauli = post_scf.pauli
-mat_new = post_scf.matrices()
 tsrp = post_scf.tsrp
 
+mat_new = post_scf.matrices(r=1.4632)
 h_tot = mat_new['h_tot']
 h_c = mat_new['h_c']
 tt = mat_new['tt']
@@ -40,6 +41,35 @@ coef = [a1, a1, a2, a2,
         f1, f1, -f1, -f1]
 
 operations = [tsrp(operations_[i]) for i in range(24)]
+
+
+def plot_disa(r=100):
+    # plots the g.s. energy for different bond length values
+    global mat_new, h_tot, h_c, tt
+    r_range = np.linspace(0.5, 5, r)
+    store = np.zeros([r_range.size, 3])
+    n = 0
+    for i in r_range:
+        mat_new = post_scf.matrices(r=i)
+        print('The bond length is: ', i)
+        h_tot = mat_new['h_tot']
+        h_c = mat_new['h_c']
+        tt = mat_new['tt']
+        store[n, 0] = i
+        res = optimise()
+        t0 = np.zeros(3)
+        za, zb = 2, 1
+        store[n, 1] = energy(t0) + za * zb / i
+        store[n, 2] = res.fun + za * zb / i
+        n = n + 1
+    plt.plot(store[:, 0], store[:, 1], label='Hartree-Fock')
+    plt.plot(store[:, 0], store[:, 2], label='UCC variational')
+    plt.xlabel('R (a.u.)')
+    plt.ylabel('E (a.u.)')
+    plt.title('Helium hydride ground state energy (E) as a function of bond length (R)')
+    plt.grid('--')
+    plt.legend()
+    return store
 
 
 def etsrp(t, s):
@@ -86,7 +116,6 @@ def energy(t, mode=0):
     # observables have real expectations (Hermitian matrices have real e-vals)
 
     if mode == 1:
-        true0 = true
         true = var_energy(state)
         # print('true energy is: ', true0)
         # print('mle energy is: ', true)
@@ -103,7 +132,7 @@ def var_energy(state):
 
     eps = 1e-3
     n = eps**(-2)
-    n = 10
+    n = 100
     mle_op = np.zeros(24)
 
     def var_op(st, op, n_):
@@ -166,23 +195,24 @@ def plot_2d():
     plt.show()
 
 
-def plot_3d():
-    cls = classical.mps()
-    m = cls.shape[0]
-    print('Im here')
+def plot_3d(mode=0):
+
+    if mode == 1:
+        cls = classical.mps()
+        m = cls.shape[0]
     x = np.arange(-2, 2, 0.1)
     y = np.arange(-2, 2, 0.1)
     z = np.zeros([x.size, y.size])
     cls_list = []
 
     def energy_2(x_, y_):
-        state = np.array([prepare(np.array([x_, y_, 0]))])
-        state_rep = np.repeat(state, m, axis=0)
         e = energy(np.array([x_, y_, 0]))
-        # _, _, d = stabiliser.min_energy(state)
-        d = np.linalg.norm(cls[:, :, 0] - state_rep, axis=1)
-        if min(d) < 0.1:
-            cls_list.append((x_, y_, e))
+        if mode == 1:
+            state = np.array([prepare(np.array([x_, y_, 0]))])
+            state_rep = np.repeat(state, m, axis=0)
+            d = np.linalg.norm(cls[:, :, 0] - state_rep, axis=1)
+            if min(d) < 0.1:
+                cls_list.append((x_, y_, e))
         return e
 
     fig = plt.figure()
@@ -192,12 +222,19 @@ def plot_3d():
         for q in range(y.size):
             z[p, q] = energy_2(x[p], y[q])
 
-    for s in cls_list:
-        ax.scatter(s[0], s[1], s[2], zdir='z', c='r')
+    if mode == 1:
+        for s in cls_list:
+            ax.scatter(s[0], s[1], s[2], zdir='z', c='r')
 
     x, y = np.meshgrid(x, y)
     surf = ax.plot_surface(x, y, z,
                            linewidth=0, antialiased=False)
 
     plt.show()
+
+
+
+
+
+
 

@@ -1,10 +1,12 @@
 # scf calculates solutions to the (spatial) Fock eigen-equation.
 
+import importlib
 import numpy as np
 import pre_scf
+importlib.reload(pre_scf)
 
 
-def scf(zeta1=2.0925, zeta2=1.24, r=1.4632, za=2, zb=1, eps=1e-4, max_iter=25):
+def scf(r, zeta1=2.0925, zeta2=1.24, za=2, zb=1, eps=1e-4, max_iter=25):
 
     # retrieve the Fock operator matrix elements 'h' (core), 'tt' (two-electron) in the STO basis of 2 spatial orbitals,
     # and also the basis' overlap matrix 's' and the canonical diagonalisation matrix 'x' of 's'
@@ -75,3 +77,4 @@ def scf(zeta1=2.0925, zeta2=1.24, r=1.4632, za=2, zb=1, eps=1e-4, max_iter=25):
     print('The numerical HF G.S. electronic energy is: ', en)
 
     return c, en, mat
+# zeta1=2.0925, zeta2=1.24, r=1.4632, za=2, zb=1, eps=1e-4, max_iter=25
